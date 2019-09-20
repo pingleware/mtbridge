@@ -1,6 +1,6 @@
 {
   "name": "mtbridge",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Metatrader API Bridge",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,8 @@
   "dependencies": {
     "config.json": "0.0.4",
     "cors": "^2.8.5",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "killable": "^1.0.1",
+    "nodejs-md5": "^1.1.0"
   }
 }

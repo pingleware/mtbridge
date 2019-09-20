@@ -1,8 +1,10 @@
 "use strict"
 
 var config = require("config.json")("./settings.json");
+var md5 = require("nodejs-md5");
 var cors = require("cors");
 var express = require("express");
+var killable = require('killable');
 var app = express();
 
 const MAX_SESSIONS=config.max_sessions;
@@ -274,9 +276,60 @@ app.get("/", cors(), function(req, res, next){
 
  
 
-app.get("/About", cors(), function(req, res, next){
-   var pjson = require('./package.json');
-   res.json(pjson);
+// Displays the available routes
+app.get("/", cors(), function(req, res, next){
+    const routes = [];
+
+    app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+        routes.push(`${Object.keys(middleware.route.methods)} -> ${middleware.route.path}`);
+    }
+    });
+    res.json(routes);
+});
+
+// Displays PACKAGE.JSON information
+app.get("/about", cors(), function(req, res, next){
+    var pjson = require('./package.json');
+    res.json(pjson);
+});
+
+
+// Generates a MD5 hash from a plain text password, hash is saved to SETTINGS.JSON 
+app.get('/md5/:password', function(req, res, next){
+    md5.string.quiet(req.params.password, function (err, md5) {
+        if (err) {
+            next(err);
+        }
+        else {
+            res.json(md5);
+        }
+    });
+    
+});
+
+// Shutdowns the server with password authentication
+app.get('/shutdown/:password', function (req, res, next) {
+    if (config.password) {
+        md5.string.quiet(req.params.password, function (err, md5) {
+            if (err) {
+                next(err);
+            }
+            else {
+                if (md5 === config.password) {
+                    res.json('Server is going down NOW!');
+  
+                    server.kill(function () {
+                      //the server is down when this is called. That won't take long.
+                    });                
+                } else {
+                    next("Unauthorized access!");
+                }
+            }
+        });
+    } else {
+        next("Please set password in settings.json");
+    }
 });
 
 app.get("/FindExistingSession/:acctnum.:handle.:symbol", cors(), function(req, res,next){
@@ -961,7 +1014,7 @@ app.post("/SetSwapRateShort", cors(), function(req, res, next){
     req.json(ERROR_CODES.RET_OK);
 });
 
-app.listen(config.port, () => {
+var server = app.listen(config.port, () => {
     console.log("Server running on port " + config.port);
 });
-
+killable(server);
