@@ -263,18 +263,6 @@ for (let i=0; i<100; i++) {
     ticks[i] = new TICKS();
 }
 
-app.get("/", cors(), function(req, res, next){
-    const routes = [];
-
-    app._router.stack.forEach(middleware => {
-    if (middleware.route) {
-        routes.push(`${Object.keys(middleware.route.methods)} -> ${middleware.route.path}`);
-    }
-    });
-    res.json(routes);
-});
-
- 
 
 // Displays the available routes
 app.get("/", cors(), function(req, res, next){
