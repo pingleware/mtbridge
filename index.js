@@ -11,32 +11,32 @@ const MAX_SESSIONS=config.max_sessions;
 
 const ERROR_CODES = { 
     RET_OK: 0,
-    RET_OK_NONE: 1,          // ��� ��
-    RET_ERROR: 2,            // ������ ������������ ������
-    RET_INVALID_DATA: 3,     // �������� ������
-    RET_TECH_PROBLEM: 4,     // ����������� �������� �� �������
-    RET_ACCOUNT_DISABLED: 5, // ���� ������������
+    RET_OK_NONE: 1,
+    RET_ERROR: 2,
+    RET_INVALID_DATA: 3,
+    RET_TECH_PROBLEM: 4,
+    RET_ACCOUNT_DISABLED: 5,
     RET_BAD_ACCOUNT_INFO: 6, 
 
-    RET_TIMEOUT: 7,          // ����� ���� �������� ���������� ������
-    RET_BAD_PRICES: 8,       // �������� ������ � ����� � ������
-    RET_MARKET_CLOSED: 9,    // ����� ������
-    RET_TRADE_DISABLE: 10,    // �������� ���������
-    RET_NO_MONEY: 11,         // ������������ ����� ��� ���������� ��������
-    RET_PRICE_CHANGED: 12,    // ���� ����������
-    RET_OFFQUOTES: 13,        // ��� ���
-    RET_BROKER_BUSY: 14,      // ������ �����
+    RET_TIMEOUT: 7,
+    RET_BAD_PRICES: 8,
+    RET_MARKET_CLOSED: 9,
+    RET_TRADE_DISABLE: 10,
+    RET_NO_MONEY: 11,
+    RET_PRICE_CHANGED: 12,
+    RET_OFFQUOTES: 13,
+    RET_BROKER_BUSY: 14,
 
-    RET_OLD_VERSION: 15,      // ������ ������ ����������� ���������
-    RET_MULTI_CONNECT: 16,    // ������������� �������
-    RET_NO_CONNECT: 17,       // ��� ����������
-    RET_NOT_ENOUGH_RIGHTS: 18,// ��� ����
-    RET_BAD_STOPS: 19,        // �������� ������� ������ 
-    RET_SKIPPED: 20,          // �������� ��������� ��-�� ���� ��� ������� �����
-    RET_TOO_FREQUENT: 21,     // ������� ������ ���������
-    RET_INVALID_VOLUME: 22,   // ������������ �����
-    RET_INVALID_HANDLE: 23,   // �������� �����
-    RET_INSTANTEXECUTION: 24  // ���������� � ������ IE
+    RET_OLD_VERSION: 15,
+    RET_MULTI_CONNECT: 16,
+    RET_NO_CONNECT: 17,
+    RET_NOT_ENOUGH_RIGHTS: 18,
+    RET_BAD_STOPS: 19,
+    RET_SKIPPED: 20,
+    RET_TOO_FREQUENT: 21,
+    RET_INVALID_VOLUME: 22,
+    RET_INVALID_HANDLE: 23,
+    RET_INSTANTEXECUTION: 24
 };
 
 const COMMANDS = { 
@@ -265,7 +265,7 @@ for (let i=0; i<100; i++) {
 
 
 // Displays the available routes
-app.get("/", function(req, res, next){
+app.get("/",cors(), function(req, res, next){
     const routes = [];
 
     app._router.stack.forEach(middleware => {
@@ -277,14 +277,14 @@ app.get("/", function(req, res, next){
 });
 
 // Displays PACKAGE.JSON information
-app.get("/about", function(req, res, next){
+app.get("/about",cors(), function(req, res, next){
     var pjson = require('./package.json');
     res.json(pjson);
 });
 
 
 // Generates a MD5 hash from a plain text password, hash is saved to SETTINGS.JSON 
-app.get('/md5/:password', function(req, res, next){
+app.get('/md5/:password',cors(), function(req, res, next){
     md5.string.quiet(req.params.password, function (err, md5) {
         if (err) {
             res.json(err);
@@ -320,7 +320,20 @@ app.get('/shutdown/:password', function (req, res, next) {
     }
 });
 
-app.get("/FindExistingSession/:acctnum.:handle.:symbol", function(req, res,next){
+//Create new Tick
+app.post('/Ticks',cors(), function(req, res) {
+    console.log('Inserting New Tick');
+
+    var tick = req.body;
+    console.log('>'+JSON.stringify(tick,null,4));
+
+    Tick.addTick(tick, function(err, tick){
+        if(err) res.json(err);
+        res.json(tick);
+    });
+});
+
+app.get("/FindExistingSession/:acctnum.:handle.:symbol",cors(), function(req, res,next){
     res.json(FindExistingSession(req.params.acctnum, req.params.handle, req.params.symbol));
 });
 
@@ -341,7 +354,7 @@ function FindExistingSession(acctnum,handle,symbol) {
  * const int acctnum,const int handle,const char *symbol,
 									const char *symbol1,const char *symbol2,const char *symbol3
  */
-app.get("/Initialize/:acctnum.:handle.:symbol.:symbol1.:symbol2.:symbol3", function(req, res, next){
+app.get("/Initialize/:acctnum.:handle.:symbol.:symbol1.:symbol2.:symbol3",cors(), function(req, res, next){
     for (let i=0;i<MAX_SESSIONS;i++) {
         if (session[i].index == 0 || (session[i].acctnum == req.params.acctnum && session[i].handle == req.params.handle)) {
             session[i].index = i+1;
@@ -363,7 +376,7 @@ app.get("/Initialize/:acctnum.:handle.:symbol.:symbol1.:symbol2.:symbol3", funct
 /**
  * const int acctnum,const int handle,const char *symbol
  */
-app.get("/InitializeCurrency1/:acctnum.:handle.:symbol", function(req, res, next){
+app.get("/InitializeCurrency1/:acctnum.:handle.:symbol",cors(), function(req, res, next){
     for (let i=0;i<MAX_SESSIONS;i++) {
 		if (session[i].index == 0) {
 			session[i].index = i+1;
@@ -385,7 +398,7 @@ app.get("/InitializeCurrency1/:acctnum.:handle.:symbol", function(req, res, next
 /**
  * const int acctnum,const int handle,const char *symbol,const int magic
  */
-app.get("/InitializeCurrency2/:acctnum.:handle.:symbol.:magic", function(req, res, next){
+app.get("/InitializeCurrency2/:acctnum.:handle.:symbol.:magic",cors(), function(req, res, next){
     let result = -1;
 
     if (!req.params.magic) {
@@ -403,7 +416,7 @@ app.get("/InitializeCurrency2/:acctnum.:handle.:symbol.:magic", function(req, re
 /**
  * const int acctnum,const int handle,const char *symbol,const int magic
  */
-app.get("/InitializeCurrency3/:acctnum.:handle.:symbol.:magic", function(req, res, next){
+app.get("/InitializeCurrency3/:acctnum.:handle.:symbol.:magic",cors(), function(req, res, next){
     let result = -1;
 
     if (!req.params.magic) {
@@ -419,7 +432,7 @@ app.get("/InitializeCurrency3/:acctnum.:handle.:symbol.:magic", function(req, re
         res.json(result);
     }
 });
-app.get("/DeInitialize/:index", function(req, res, next){
+app.get("/DeInitialize/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) {
         res.json(ERROR_CODES.RET_ERROR);
     } else {
@@ -437,11 +450,11 @@ app.get("/DeInitialize/:index", function(req, res, next){
 
 });
 
-app.get("/GetSessionCount", function(req, res, next){
+app.get("/GetSessionCount",cors(), function(req, res, next){
     res.json(session_count);
 });
 
-app.get("/GetSession/:index", function(req, res, index){
+app.get("/GetSession/:index",cors(), function(req, res, index){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) 
 	{
 		var temp = new SESSION();
@@ -450,131 +463,140 @@ app.get("/GetSession/:index", function(req, res, index){
 	res.json(session[req.params.index-1]);
 });
 
-app.get("/GetAllSessions", function(req, res, next){
+app.get("/GetAllSessions",cors(), function(req, res, next){
     res.json(session);
 });
-app.get("/GetDllVersion", function(req, res, next){
+app.get("/GetDllVersion",cors(), function(req, res, next){
     res.json("Metatrader API Version 3.0 - Copyright (c) 2009,2012,2013,2019 PressPage Entertainment Inc DBA RedeeCash");
 });
 /**
  * int index,double _bid,double _ask,double _close,double _volume)
  */
-app.post("/SetBidAsk", function(req, res, next){
-    let index = req.body.index;
-    let _bid = req.body.bid;
-    let _ask = req.body.ask;
-    let _close = req.body.close;
-    let _volume = req.body.volume;
+app.get("/SetBidAsk",cors(), function(req, res, next){
+    let index = req.params.index;
+    let _bid = req.params.bid;
+    let _ask = req.params.ask;
+    let _close = req.params.close;
+    let _volume = req.params.volume;
 
-    if (index > MAX_SESSIONS || index > session_count || index < 0) res.json(ERROR_CODES.RET_ERROR);
-
-	bid[index-1] = _bid;
-	ask[index-1] = _ask;
-	close[index-1] = _close;
-    volume[index-1] = _volume;
-    
-    res.json(ERROR_CODES.RET_OK);
+    if (index > MAX_SESSIONS || index > session_count || index < 0) {
+        res.json(ERROR_CODES.RET_ERROR);
+    } else {
+        bid[index-1] = _bid;
+        ask[index-1] = _ask;
+        close[index-1] = _close;
+        volume[index-1] = _volume;
+        
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.get("/GetBid/:index", function(req, res, next){
+app.get("/GetBid/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json(-1);
 	res.json(bid[req.params.index-1]);
 });
-app.get("/GetAsk/:index", function(req, res, next){
+app.get("/GetAsk/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json(-1);
 	res.json(ask[req.params.index-1]);
 });
-app.get("/GetVolume/:index", function(req, res, next){
+app.get("/GetVolume/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json(-1);
 	res.json(volume[req.params.index-1]);
 });
-app.get("/GetClose/:index", function(req, res, next){
+app.get("/GetClose/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json(-1);
 	res.json(close[req.params.index-1]);
 });
-app.post("/SaveAccountInfo", function(req, res, next){
-    let session = req.body.session;
-    let number = req.body.number;
-    let balance = req.body.balance;
-    let equity = req.body.equity;
-    let leverage = req.body.leverage;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(ERROR_CODES.RET_ERROR);
+app.get("/SaveAccountInfo/:session.:acctnum.:balance.:equity.:leverage",cors(), function(req, res, next){
+    let session = req.params.session;
+    let number = req.params.acctnum;
+    let balance = req.params.balance;
+    let equity = req.params.equity;
+    let leverage = req.params.leverage;
 
-	account[session-1].number = number;
-	account[session-1].balance = balance;
-	account[session-1].equity = equity;
-	account[session-1].leverage = leverage;
-
-	return(session);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(ERROR_CODES.RET_ERROR);
+    } else {
+        account[session-1].number = number;
+        account[session-1].balance = balance;
+        account[session-1].equity = equity;
+        account[session-1].leverage = leverage;
+    
+        res.json(session);
+    }
 });
-app.get("/GetAccountNumber/:session", function(req, res, next){
+
+app.get("/GetAccountNumber/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(account[session-1].number);
 });
-app.get("/GetAccountBalance/:session", function(req, res, next){
+app.get("/GetAccountBalance/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(account[session-1].balance);
 });
-app.get("/GetAccountEquity/:session", function(req, res, next){
+app.get("/GetAccountEquity/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(account[session-1].equity);
 });
-app.get("/GetAccountLeverage/:session", function(req, res, next){
+app.get("/GetAccountLeverage/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(account[session-1].leverage);
 });
-app.post("/SaveCurrencySessionInfo", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    let handle = req.body.handle;
-    let period = req.body.period;
-    let number = req.body.number;
+app.get("/SaveCurrencySessionInfo/:session.:symbol.:handle.:period.:number",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    let handle = req.params.handle;
+    let period = req.params.period;
+    let number = req.params.number;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(ERROR_CODES.RET_ERROR);
-	ccypairs[session-1].id = session;
-	ccypairs[session-1].symbol = symbol;
-	ccypairs[session-1].handle = handle;
-	ccypairs[session-1].period = period;
-	ccypairs[session-1].number = number;
-	res.json(session);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(ERROR_CODES.RET_ERROR);
+    } else {
+        ccypairs[session-1].id = session;
+        ccypairs[session-1].symbol = symbol;
+        ccypairs[session-1].handle = handle;
+        ccypairs[session-1].period = period;
+        ccypairs[session-1].number = number;
+        res.json(session);
+    }
 });
-app.get("/GetSessionCurrency/:index", function(req, res, next){
+app.get("/GetSessionCurrency/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(session[req.params.index-1].symbol);
 });
-app.get("/GetSessionCurrency1/:index", function(req, res, next){
+app.get("/GetSessionCurrency1/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(session[req.params.index-1].symbol1);
 });
-app.get("/GetSessionCurrency2/:index", function(req, res, next){
+app.get("/GetSessionCurrency2/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(session[req.params.index-1].symbol2);
 });
-app.get("/GetSessionCurrency3/:index", function(req, res, next){
+app.get("/GetSessionCurrency3/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(session[req.params.index-1].symbol3);
 });
-app.get("/GetSessionHandle/:index", function(req, res, next){
+app.get("/GetSessionHandle/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(session[req.params.index-1].handle);
 });
-app.get("/GetSessionPeriod/:index", function(req, res, next){
+app.get("/GetSessionPeriod/:index",cors(), function(req, res, next){
     if (req.params.index > MAX_SESSIONS || req.params.index > session_count || req.params.index < 0) res.json("ERROR");
     res.json(ccypairs[session-1].period);
 });
-app.get("/DecrementQueuePosition", function(req, res, next){
+app.get("/DecrementQueuePosition",cors(), function(req, res, next){
     queue_position[session]--;
 	res.json(ERROR_CODES.RET_OK);
 });
-app.post("/SaveMarketInfo", function(req, res, next){
-    let session = req.body.session;
-    let number = req.body.number;
-    let leverage = req.body.leverage;
-    var symbol = req.body.symbol;
-    let points = req.body.points;
-    let digits = req.body.digits;
-    let spread = req.body.spread;
-    let stoplevel = req.body.stoplevel;
+app.get("/SaveMarketInfo/:session.:number.:leverage.:symbol.:points.:digits.:spread.:stoplevel",cors(), function(req, res, next){
+    let session = req.params.session;
+    let number = req.params.number;
+    let leverage = req.params.leverage;
+    var symbol = req.params.symbol;
+    let points = req.params.points;
+    let digits = req.params.digits;
+    let spread = req.params.spread;
+    let stoplevel = req.params.stoplevel;
 
     marketinfo[session-1].number = number;
     marketinfo[session-1].leverage = leverage;
@@ -586,191 +608,200 @@ app.post("/SaveMarketInfo", function(req, res, next){
 
     res.json(session);
 });
-app.get("/GetDigits/:session", function(req, res, next){
+app.get("/GetDigits/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
     res.json(marketinfo[session-1].digits);
 });
-app.get("/GetSpread/:session", function(req, res, next){
+app.get("/GetSpread/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
     res.json(marketinfo[session-1].spread);
 heather97
 });
-app.get("/GetStoplevel/:session", function(req, res, next){
+app.get("/GetStoplevel/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
     res.json(marketinfo[session-1].stoplevel);
 });
-app.get("/GetPoints/:session", function(req, res, next){
+app.get("/GetPoints/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
     res.json(marketinfo[session-1].points);
 });
-app.post("/SaveMarginInfo", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    let handle = req.body.handle;
-    let margininit = req.body.margininit;
-	let marginmaintenance = req.body.marginmaintenance;
-    let marginhedged = req.body.marginhedged;
-    let marginrequired = req.body.marginrequired;
-    let margincalcmode = req.body.margincalcmode;
+app.get("/SaveMarginInfo/:session.:symbol.:handle.:margininit.:marginmaintenance.:marginhedged.:marginrequired.:margincalcmode",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    let handle = req.params.handle;
+    let margininit = req.params.margininit;
+	let marginmaintenance = req.params.marginmaintenance;
+    let marginhedged = req.params.marginhedged;
+    let marginrequired = req.params.marginrequired;
+    let margincalcmode = req.params.margincalcmode;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(ERROR+CODES.RET_ERROR);
-
-    margininfo[session-1].symbol = symbol;
-    margininfo[session-1].handle = handle;
-    margininfo[session-1].margininit = margininit;
-    margininfo[session-1].marginmaintenance = marginmaintenance;
-    margininfo[session-1].marginhead = marginhedged;
-    margininfo[session-1].marginrequired = marginrequired;
-    margininfo[session-1].margincalcmode = margincalcmode;
-
-    res.json(session);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(ERROR+CODES.RET_ERROR);
+    } else {
+        margininfo[session-1].symbol = symbol;
+        margininfo[session-1].handle = handle;
+        margininfo[session-1].margininit = margininit;
+        margininfo[session-1].marginmaintenance = marginmaintenance;
+        margininfo[session-1].marginhead = marginhedged;
+        margininfo[session-1].marginrequired = marginrequired;
+        margininfo[session-1].margincalcmode = margincalcmode;
+    
+        res.json(session);
+    }
 });
-app.get("/GetMarginInit/:session", function(req, res, next){
+app.get("/GetMarginInit/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(margininfo[req.params.session-1].margininit);
 });
-app.get("/GetMarginMaintenance/:session", function(req, res, next){
+app.get("/GetMarginMaintenance/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(margininfo[req.params.session-1].marginmaintenance);
 });
-app.get("/GetMarginHedged/:session", function(req, res, next){
+app.get("/GetMarginHedged/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(margininfo[req.params.session-1].marginhedged);
 });
-app.get("/GetMarginRequired/:session", function(req, res, next){
+app.get("/GetMarginRequired/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(margininfo[req.params.session-1].marginrequired);
 });
-app.get("/GetMarginCalcMode/:session", function(req, res, next){
+app.get("/GetMarginCalcMode/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(ERROR_CODES.RET_ERROR);
 	res.json(margininfo[req.params.session-1].margincalcmode);
 });
-app.get("/GetTradeOpCommand/:session", function(req, res, next){
+app.get("/GetTradeOpCommand/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].cmd);
 });
-app.get("/GetTradeOpCommand1/:session", function(req, res, next){
+app.get("/GetTradeOpCommand1/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].cmd1);
 });
-app.get("/GetTradeOpCommand2/:session", function(req, res, next){
+app.get("/GetTradeOpCommand2/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].cmd2);
 });
-app.get("/GetTradeOpCommand3/:session", function(req, res, next){
+app.get("/GetTradeOpCommand3/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].cmd3);
 });
-app.post("/SaveHistory", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    var rates = req.body.rates; // RateInfo
-    let rates_total = req.body.rates_total;
-    let handle = req.body.handle;
+app.get("/SaveHistory/:session.:symbol.:rates.:rates_total.:handle",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    var rates = req.params.rates; // RateInfo
+    let rates_total = req.params.rates_total;
+    let handle = req.params.handle;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(-1);
-
-	for (let i=0;i<100;i++) 
-	{
-		history[session-1][i].open = rates[rates_total-101+i].open;
-		history[session-1][i].high = rates[rates_total-101+i].high;
-		history[session-1][i].low = rates[rates_total-101+i].low;
-		history[session-1][i].close = rates[rates_total-101+i].close;
-		history[session-1][i].vol = rates[rates_total-101+i].vol;
-		history[session-1][i].ctm = rates[rates_total-101+i].ctm;
-	}
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(-1);
+    } else {
+        for (let i=0;i<100;i++) 
+        {
+            history[session-1][i].open = rates[rates_total-101+i].open;
+            history[session-1][i].high = rates[rates_total-101+i].high;
+            history[session-1][i].low = rates[rates_total-101+i].low;
+            history[session-1][i].close = rates[rates_total-101+i].close;
+            history[session-1][i].vol = rates[rates_total-101+i].vol;
+            history[session-1][i].ctm = rates[rates_total-101+i].ctm;
+        }
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.post("/SaveHistoryCcy1", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    var rates = req.body.rates; // RateInfo
-    let rates_total = req.body.rates_total;
-    let handle = req.body.handle;
+app.get("/SaveHistoryCcy1/:session.:symbol.:rates.:rates_total.:handle",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    var rates = req.params.rates; // RateInfo
+    let rates_total = req.params.rates_total;
+    let handle = req.params.handle;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(-1);
-
-	for (let i=0;i<100;i++) 
-	{
-		ccy1history[session-1][i].open = rates[rates_total-101+i].open;
-		ccy1history[session-1][i].high = rates[rates_total-101+i].high;
-		ccy1history[session-1][i].low = rates[rates_total-101+i].low;
-		ccy1history[session-1][i].close = rates[rates_total-101+i].close;
-		ccy1history[session-1][i].vol = rates[rates_total-101+i].vol;
-		ccy1history[session-1][i].ctm = rates[rates_total-101+i].ctm;
-	}
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(-1);
+    } else {
+        for (let i=0;i<100;i++) 
+        {
+            ccy1history[session-1][i].open = rates[rates_total-101+i].open;
+            ccy1history[session-1][i].high = rates[rates_total-101+i].high;
+            ccy1history[session-1][i].low = rates[rates_total-101+i].low;
+            ccy1history[session-1][i].close = rates[rates_total-101+i].close;
+            ccy1history[session-1][i].vol = rates[rates_total-101+i].vol;
+            ccy1history[session-1][i].ctm = rates[rates_total-101+i].ctm;
+        }
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.post("/SaveHistoryCcy2", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    var rates = req.body.rates; // RateInfo
-    let rates_total = req.body.rates_total;
-    let handle = req.body.handle;
+app.get("/SaveHistoryCcy2/:session.:symbol.:rates.:rates_total.:handle",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    var rates = req.params.rates; // RateInfo
+    let rates_total = req.params.rates_total;
+    let handle = req.params.handle;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(-1);
-
-	for (let i=0;i<100;i++) 
-	{
-		ccy2history[session-1][i].open = rates[rates_total-101+i].open;
-		ccy2history[session-1][i].high = rates[rates_total-101+i].high;
-		ccy2history[session-1][i].low = rates[rates_total-101+i].low;
-		ccy2history[session-1][i].close = rates[rates_total-101+i].close;
-		ccy2history[session-1][i].vol = rates[rates_total-101+i].vol;
-		ccy2history[session-1][i].ctm = rates[rates_total-101+i].ctm;
-	}
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(-1);
+    } else {
+        for (let i=0;i<100;i++) 
+        {
+            ccy2history[session-1][i].open = rates[rates_total-101+i].open;
+            ccy2history[session-1][i].high = rates[rates_total-101+i].high;
+            ccy2history[session-1][i].low = rates[rates_total-101+i].low;
+            ccy2history[session-1][i].close = rates[rates_total-101+i].close;
+            ccy2history[session-1][i].vol = rates[rates_total-101+i].vol;
+            ccy2history[session-1][i].ctm = rates[rates_total-101+i].ctm;
+        }
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.post("/SaveHistoryCcy3", function(req, res, next){
-    let session = req.body.session;
-    var symbol = req.body.symbol;
-    var rates = req.body.rates; // RateInfo
-    let rates_total = req.body.rates_total;
-    let handle = req.body.handle;
+app.get("/SaveHistoryCcy3/:session.:symbol.:rates.:rates_total.:handle",cors(), function(req, res, next){
+    let session = req.params.session;
+    var symbol = req.params.symbol;
+    var rates = req.params.rates; // RateInfo
+    let rates_total = req.params.rates_total;
+    let handle = req.params.handle;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(-1);
-
-	for (let i=0;i<100;i++) 
-	{
-		ccy3history[session-1][i].open = rates[rates_total-101+i].open;
-		ccy3history[session-1][i].high = rates[rates_total-101+i].high;
-		ccy3history[session-1][i].low = rates[rates_total-101+i].low;
-		ccy3history[session-1][i].close = rates[rates_total-101+i].close;
-		ccy3history[session-1][i].vol = rates[rates_total-101+i].vol;
-		ccy3history[session-1][i].ctm = rates[rates_total-101+i].ctm;
-	}
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(-1);
+    } else {
+        for (let i=0;i<100;i++) 
+        {
+            ccy3history[session-1][i].open = rates[rates_total-101+i].open;
+            ccy3history[session-1][i].high = rates[rates_total-101+i].high;
+            ccy3history[session-1][i].low = rates[rates_total-101+i].low;
+            ccy3history[session-1][i].close = rates[rates_total-101+i].close;
+            ccy3history[session-1][i].vol = rates[rates_total-101+i].vol;
+            ccy3history[session-1][i].ctm = rates[rates_total-101+i].ctm;
+        }
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.get("/RetrieveHistoryBufferSize/:session", function(req, res, next){
+app.get("/RetrieveHistoryBufferSize/:session",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
-//	return(history[session-1].size);
 	res.json(100);
 });
-app.get("/RetrieveHistoricalOpen/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalOpen/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].open);
 });
-app.get("/RetrieveHistoricalHigh/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalHigh/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].high);
 });
-app.get("/RetrieveHistoricalLow/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalLow/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].low);
 });
-app.get("/RetrieveHistoricalClose/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalClose/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].close);
 });
-app.get("/RetrieveHistoricalVolume/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalVolume/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].volume);
 });
-app.get("/RetrieveHistoricalTime/:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalTime/:session.:index",cors(), function(req, res, next){
     if (req.parsms.session > MAX_SESSIONS || req.parsms.session > session_count || req.parsms.session < 0) res.json(-1);
 	res.json(history[req.parsms.session-1][req.parsms.index].ctm);
 });
-app.get("/RetrieveHistoricalOpen2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalOpen2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -785,7 +816,7 @@ app.get("/RetrieveHistoricalOpen2/:pair.:session.:index", function(req, res, nex
 	}
 	res.json(0);
 });
-app.get("/RetrieveHistoricalHigh2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalHigh2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -800,7 +831,7 @@ app.get("/RetrieveHistoricalHigh2/:pair.:session.:index", function(req, res, nex
 	}
 	res.json(0);
 });
-app.get("/RetrieveHistoricalLow2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalLow2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -815,7 +846,7 @@ app.get("/RetrieveHistoricalLow2/:pair.:session.:index", function(req, res, next
 	}
 	res.json(0);
 });
-app.get("/RetrieveHistoricalClose2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalClose2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -830,7 +861,7 @@ app.get("/RetrieveHistoricalClose2/:pair.:session.:index", function(req, res, ne
 	}
 	res.json(0);
 });
-app.get("/RetrieveHistoricalVolume2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalVolume2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -845,7 +876,7 @@ app.get("/RetrieveHistoricalVolume2/:pair.:session.:index", function(req, res, n
 	}
 	res.json(0);
 });
-app.get("/RetrieveHistoricalTime2/:pair.:session.:index", function(req, res, next){
+app.get("/RetrieveHistoricalTime2/:pair.:session.:index",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	switch(req.params.pair-1) {
 		case 0:
@@ -860,31 +891,33 @@ app.get("/RetrieveHistoricalTime2/:pair.:session.:index", function(req, res, nex
 	}
 	res.json(0);
 });
-app.post("/SendResponse", function(req, res, next){
-    let session = req.body.session;
-    let errorcode = req.body.errorcode;
-    let respcode = req.body.respcode;
-    var message = req.body.message;
-    let ticket = req.body.ticket;
+app.get("/SendResponse/:session.:errorcode.:respcode.:message.:ticket",cors(), function(req, res, next){
+    let session = req.params.session;
+    let errorcode = req.params.errorcode;
+    let respcode = req.params.respcode;
+    var message = req.params.message;
+    let ticket = req.params.ticket;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(-1);
-
-	response[session-1].errorcode = errorcode;
-	response[session-1].respcode = respcode;
-	response[session-1].tradeid = ticket;
-    response[session-1].message = message;
-    
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(-1);
+    } else {
+        response[session-1].errorcode = errorcode;
+        response[session-1].respcode = respcode;
+        response[session-1].tradeid = ticket;
+        response[session-1].message = message;
+        
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.get("/GetResponseErrorCode/:session", function(req, res, next){
+app.get("/GetResponseErrorCode/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(response[req.params.session-1].errorcode);
 });
-app.get("/GetResponseCode/:session", function(req, res, next){
+app.get("/GetResponseCode/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(response[req.params.session-1].respcode);
 });
-app.get("/GetResponseMessage/:session", function(req, res, next){
+app.get("/GetResponseMessage/:session",cors(), function(req, res, next){
     if (session > MAX_SESSIONS || session > session_count || session < 0) res.json("OUT_OF_BOUNDS");
 
 	if (response[req.params.session-1].read == 0) {
@@ -894,43 +927,45 @@ app.get("/GetResponseMessage/:session", function(req, res, next){
     
 	res.json("NONE");
 });
-app.get("/GetTicketNumber/:session", function(req, res, next){
+app.get("/GetTicketNumber/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(response[req.params.session-1].tradeid);
 });
-app.post("/SendTradeCommands", function(req, res, next){
-    let session = req.body.session;
-    let cmd = req.body.cmd;
-    var symbol = req.body.symbol;
-    let lots = req.body.lots;
-    let price = req.body.price;
-    let stoploss = req.body.stoploss;
-    let profit = req.body.profit;
+app.get("/SendTradeCommands/:session.:cmd.:symbol.:lots.:price.:stoploss.:profit",cors(), function(req, res, next){
+    let session = req.params.session;
+    let cmd = req.params.cmd;
+    var symbol = req.params.symbol;
+    let lots = req.params.lots;
+    let price = req.params.price;
+    let stoploss = req.params.stoploss;
+    let profit = req.params.profit;
 
-    if (session > MAX_SESSIONS || session > session_count || session < 0) res.json(ERROR_CODES.RET_ERROR);
-
-	trade_commands[session-1].cmd = cmd;
-	trade_commands[session-1].cmd2 = -1;
-	trade_commands[session-1].cmd3 = -1;
-	trade_commands[session-1].symbol = symbol;
-	trade_commands[session-1].lots  = lots;
-	trade_commands[session-1].price = price;
-	trade_commands[session-1].stoploss = stoploss;
-    trade_commands[session-1].takeprofit = profit;
-    
-	res.json(ERROR_CODES.RET_OK);
+    if (session > MAX_SESSIONS || session > session_count || session < 0) {
+        res.json(ERROR_CODES.RET_ERROR);
+    } else {
+        trade_commands[session-1].cmd = cmd;
+        trade_commands[session-1].cmd2 = -1;
+        trade_commands[session-1].cmd3 = -1;
+        trade_commands[session-1].symbol = symbol;
+        trade_commands[session-1].lots  = lots;
+        trade_commands[session-1].price = price;
+        trade_commands[session-1].stoploss = stoploss;
+        trade_commands[session-1].takeprofit = profit;
+        
+        res.json(ERROR_CODES.RET_OK);
+    }
 });
-app.post("/SendTradeCommands2", function(req, res, next){
-    let session = req.body.session;
-    let cmd = req.body.cmd;
-    var symbol1 = req.body.symbol1;
-    let lots = req.body.lots;
-    let cmd2 = req.body.cmd2;
-    var symbol2 = req.body.symbol2;
-    let lots2 = req.body.lots2;
-    let cmd3 = req.body.cmd3;
-    var symbol3 = req.body.symbol3;
-    let lots3 = req.body.lots3;
+app.get("/SendTradeCommands2/:session.:cmd.:symbol1.:lots.:cmd2.:symbol2.:lots2.:cmd3.:symbol3.:lots3",cors(), function(req, res, next){
+    let session = req.params.session;
+    let cmd = req.params.cmd;
+    var symbol1 = req.params.symbol1;
+    let lots = req.params.lots;
+    let cmd2 = req.params.cmd2;
+    var symbol2 = req.params.symbol2;
+    let lots2 = req.params.lots2;
+    let cmd3 = req.params.cmd3;
+    var symbol3 = req.params.symbol3;
+    let lots3 = req.params.lots3;
 
     trade_commands[session-1].cmd1 = cmd;
 	trade_commands[session-1].cmd2 = cmd2;
@@ -944,31 +979,31 @@ app.post("/SendTradeCommands2", function(req, res, next){
     
     res.json(ERROR_CODES.RET_OK);
 });
-app.get("/GetTradePrice/:session", function(req, res, next){
+app.get("/GetTradePrice/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].price);
 });
-app.get("/GetTradeLots/:session", function(req, res, next){
+app.get("/GetTradeLots/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].lots);
 });
-app.get("/GetTradeLots2/:session", function(req, res, next){
+app.get("/GetTradeLots2/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].lots2);
 });
-app.get("/GetTradeLots3/:session", function(req, res, next){
+app.get("/GetTradeLots3/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].lots3);
 });
-app.get("/GetTradeStoploss/:session", function(req, res, next){
+app.get("/GetTradeStoploss/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].stoploss);
 });
-app.get("/GetTradeTakeprofit/:session", function(req, res, next){
+app.get("/GetTradeTakeprofit/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(trade_commands[req.params.session-1].takeprofit);
 });
-app.get("/ResetTradeCommand/:session", function(req, res, next){
+app.get("/ResetTradeCommand/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	trade_commands[req.params.session-1].cmd = -1;
 	trade_commands[req.params.session-1].cmd1 = -1;
@@ -976,35 +1011,41 @@ app.get("/ResetTradeCommand/:session", function(req, res, next){
     trade_commands[req.params.session-1].cmd3 = -1;
     req.json(ERROR_CODES.RET_OK);
 });
-app.get("/GetTradeCurrency/:session", function(req, res, next){
+app.get("/GetTradeCurrency/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json("OUT OF BOUNDS");
 	res.json(trade_commands[req.params.session-1].symbol);
 });
-app.get("/GetTradeCurrency2/:session", function(req, res, next){
+app.get("/GetTradeCurrency2/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json("OUT OF BOUNDS");
 	res.json(trade_commands[req.params.session-1].symbol2);
 });
-app.get("/GetTradeCurrency3/:session", function(req, res, next){
+app.get("/GetTradeCurrency3/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json("OUT OF BOUNDS");
 	res.json(trade_commands[req.params.session-1].symbol3);
 });
-app.get("/GetSwapRateLong/:session", function(req, res, next){
+app.get("/GetSwapRateLong/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(swap_rate_long[req.params.session-1]);
 });
-app.get("/GetSwapRateShort/:session", function(req, res, next){
+app.get("/GetSwapRateShort/:session",cors(), function(req, res, next){
     if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
 	res.json(swap_rate_short[req.params.session-1]);
 });
-app.post("/SetSwapRateLong", function(req, res, next){
-    if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
-	swap_rate_long[req.body.session-1] = req.body.rate;    
-    req.json(ERROR_CODES.RET_OK);
+app.get("/SetSwapRateLong/:session.:rate",cors(), function(req, res, next){
+    if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) {
+        res.json(-1);
+    } else {
+        swap_rate_long[req.params.session-1] = req.params.rate;    
+        req.json(ERROR_CODES.RET_OK);    
+    }
 });
-app.post("/SetSwapRateShort", function(req, res, next){
-    if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) res.json(-1);
-    swap_rate_short[req.body.session-1] = req.body.rate;
-    req.json(ERROR_CODES.RET_OK);
+app.get("/SetSwapRateShort/:session.:rate",cors(), function(req, res, next){
+    if (req.params.session > MAX_SESSIONS || req.params.session > session_count || req.params.session < 0) {
+        res.json(-1);
+    } else {
+        swap_rate_short[req.params.session-1] = req.params.rate;
+        req.json(ERROR_CODES.RET_OK);
+    }
 });
 
 var server = app.listen(config.port, () => {
