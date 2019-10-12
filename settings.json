@@ -1,6 +1,6 @@
 {
-    "domain": "mtbridge.herokuapp.com",
-    "host": "mtbridge.herokuapp.com",
+    "domain": "localhost",
+    "host": "localhost",
     "port": 443,
     "max_sessions": 50,
     "password": "5f4dcc3b5aa765d61d8327deb882cf99" 
