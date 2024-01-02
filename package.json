@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist:mac:arm64": "pkg index.js -t node14-macos-arm64 -o upload/mtbridge-server-arm64",
+    "dist:mac:x64": "pkg index.js -t node14-macos-x64 -o upload/mtbridge-server-x64",
+    "dist:linux:arm64": "pkg index.js -t node14-linux-arm64 -o upload/mtbridge-server-linux-arm64",
+    "dist:linux:x64": "pkg index.js -t node14-linux-x64 -o upload/mtbridge-server-linux-x64",
+    "dist:win:arm64": "pkg index.js -t node14-win-arm64 -o upload/mtbridge-server-arm64.exe",
+    "dist:win:x64": "pkg index.js -t node14-win-x64 -o upload/mtbridge-server-x64.exe",
+    "dist:clean": "rm upload/mtbridge-server*"
   },
   "keywords": [
     "metatrader",
@@ -26,5 +32,8 @@
     "express": "^4.17.1",
     "killable": "^1.0.1",
     "nodejs-md5": "^1.1.0"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
   }
 }
