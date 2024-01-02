@@ -1,6 +1,6 @@
 "use strict"
 
-var config = require("config.json")("./settings.json");
+var config = require("./settings.json");
 var md5 = require("nodejs-md5");
 var cors = require("cors");
 var express = require("express");

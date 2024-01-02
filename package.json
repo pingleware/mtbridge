@@ -20,9 +20,8 @@
     "email": "presspage.entertainment@gmail.com",
     "url": "https://presspage.info"
   },
-  "license": "AAL",
+  "license": "CC-BY-4.0",
   "dependencies": {
-    "config.json": "^0.0.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "killable": "^1.0.1",
