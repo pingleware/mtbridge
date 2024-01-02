@@ -1,6 +1,6 @@
 {
   "name": "mtbridge",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Metatrader API Bridge",
   "main": "index.js",
   "scripts": {
